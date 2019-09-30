@@ -2,9 +2,9 @@
 
 Built in an evening, while noodling around with [Ebiten](https://github.com/hajimehoshi/ebiten) — a cross-platform 2D game library for Go.
 
-Hovering over a cell with the cursor flips that cell's state.
+![preview gif](https://github.com/healeycodes/conways-game-of-life/raw/master/preview.gif)
 
-![preview image](https://github.com/healeycodes/conways-game-of-life/raw/master/preview.png)
+Hovering over a cell with the cursor flips that cell's state.
 
 <br>
 
