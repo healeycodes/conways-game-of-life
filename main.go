@@ -18,8 +18,8 @@ var (
 	g *Game
 )
 
-// A new game state
-func newGame() *Game {
+// A board with empty state
+func emptyGeneration() *Game {
 	board := make([][]int, 480)
 	for i := 0; i < 480; i++ {
 		board[i] = make([]int, 480)
@@ -27,7 +27,7 @@ func newGame() *Game {
 	return &Game{board: board}
 }
 
-// Give a game a new random state
+// Given an empty board, give it a random state
 func giveState(g *Game) {
 	rand.Seed(time.Now().UnixNano())
 	for x := 0; x < 480; x++ {
@@ -42,7 +42,7 @@ func giveState(g *Game) {
 // Apply the rules to a game's generation
 // It returns the next generation
 func logic(g *Game) *Game {
-	n := newGame() // Next generation
+	n := emptyGeneration() // Next generation
 	for x := 0; x < 480; x++ {
 		for y := 0; y < 480; y++ {
 			neighbors := checkNeighbors(x, y, g)
@@ -51,7 +51,8 @@ func logic(g *Game) *Game {
 			if live && neighbors < 2 {
 				n.board[x][y] = 0
 			}
-			if live && (neighbors == 2 || neighbors == 3) { // Any live cell with two or three live neighbours lives on to the next generation
+			// Any live cell with two or three live neighbors lives on to the next generation
+			if live && (neighbors == 2 || neighbors == 3) {
 				n.board[x][y] = 1
 			}
 			// Any live cell with more than three live neighbors dies, as if by overpopulation
@@ -67,8 +68,8 @@ func logic(g *Game) *Game {
 	return n
 }
 
-// Give a position in a game
-// Get the number of alive neighbors of that position
+// Given a position and a game
+// Get the number of live neighbors at that position
 func checkNeighbors(x int, y int, g *Game) int {
 	neighbors := 0
 	if y+1 < 480 && g.board[x][y+1] == 1 { // top
@@ -126,7 +127,7 @@ func update(screen *ebiten.Image) error {
 }
 
 func main() {
-	g = newGame()
+	g = emptyGeneration()
 	giveState(g)
 	if err := ebiten.Run(update, 480, 480, 2, "Conway's Game of Life"); err != nil {
 		log.Fatal(err)
