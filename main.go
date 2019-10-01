@@ -11,6 +11,8 @@ import (
 	"github.com/hajimehoshi/ebiten/ebitenutil"
 )
 
+const RES int = 400
+
 type Game struct {
 	generation int
 	board      [][]int
@@ -22,9 +24,9 @@ var (
 
 // A board with empty state
 func emptyGeneration() *Game {
-	board := make([][]int, 480)
-	for i := 0; i < 480; i++ {
-		board[i] = make([]int, 480)
+	board := make([][]int, RES)
+	for i := 0; i < RES; i++ {
+		board[i] = make([]int, RES)
 	}
 	return &Game{board: board, generation: 1}
 }
@@ -32,8 +34,8 @@ func emptyGeneration() *Game {
 // Given an empty board, give it a random state
 func giveState(g *Game) {
 	rand.Seed(time.Now().UnixNano())
-	for x := 0; x < 480; x++ {
-		for y := 0; y < 480; y++ {
+	for x := 0; x < RES; x++ {
+		for y := 0; y < RES; y++ {
 			if rand.Intn(15) == 1 {
 				g.board[x][y] = 1
 			}
@@ -46,8 +48,8 @@ func giveState(g *Game) {
 func logic(g *Game) *Game {
 	n := emptyGeneration() // Next generation
 	n.generation = g.generation + 1
-	for x := 0; x < 480; x++ {
-		for y := 0; y < 480; y++ {
+	for x := 0; x < RES; x++ {
+		for y := 0; y < RES; y++ {
 			neighbors := checkNeighbors(x, y, g)
 			live := g.board[x][y] == 1
 			// Any live cell with fewer than two live neighbors dies, as if by underpopulation
@@ -75,16 +77,16 @@ func logic(g *Game) *Game {
 // Get the number of live neighbors at that position
 func checkNeighbors(x int, y int, g *Game) int {
 	neighbors := 0
-	if y+1 < 480 && g.board[x][y+1] == 1 { // top
+	if y+1 < RES && g.board[x][y+1] == 1 { // top
 		neighbors += 1
 	}
-	if y+1 < 480 && x+1 < 480 && g.board[x+1][y+1] == 1 { // top right
+	if y+1 < RES && x+1 < RES && g.board[x+1][y+1] == 1 { // top right
 		neighbors += 1
 	}
-	if x+1 < 480 && g.board[x+1][y] == 1 { // right
+	if x+1 < RES && g.board[x+1][y] == 1 { // right
 		neighbors += 1
 	}
-	if x+1 < 480 && y-1 > 0 && g.board[x+1][y-1] == 1 { // bottom right
+	if x+1 < RES && y-1 > 0 && g.board[x+1][y-1] == 1 { // bottom right
 		neighbors += 1
 	}
 	if y-1 > 0 && g.board[x][y-1] == 1 { // bottom
@@ -96,7 +98,7 @@ func checkNeighbors(x int, y int, g *Game) int {
 	if x-1 > 0 && g.board[x-1][y] == 1 { // left
 		neighbors += 1
 	}
-	if x-1 > 0 && y+1 < 480 && g.board[x-1][y+1] == 1 { // top left
+	if x-1 > 0 && y+1 < RES && g.board[x-1][y+1] == 1 { // top left
 		neighbors += 1
 	}
 	return neighbors
@@ -104,8 +106,8 @@ func checkNeighbors(x int, y int, g *Game) int {
 
 // Draw the game onto a black background
 func draw(g *Game, background *ebiten.Image) {
-	for x := 0; x < 480; x++ {
-		for y := 0; y < 480; y++ {
+	for x := 0; x < RES; x++ {
+		for y := 0; y < RES; y++ {
 			if g.board[x][y] == 1 {
 				ebitenutil.DrawRect(background, float64(x), float64(y), 1, 1, color.White)
 			}
@@ -115,10 +117,12 @@ func draw(g *Game, background *ebiten.Image) {
 
 // Place live cells around a point
 func interaction(x int, y int, g *Game) *Game {
-	topX, topY := x, clamp(y+1, 0, 480-1)
-	leftX, leftY := clamp(x-1, 0, 480-1), y
-	botX, botY := x, clamp(y-1, 0, 480-1)
-	rightX, rightY := clamp(x+1, 0, 480-1), y
+	x = clamp(x, 0, RES-1)
+	y = clamp(y, 0, RES-1)
+	topX, topY := x, clamp(y+1, 0, RES-1)
+	leftX, leftY := clamp(x-1, 0, RES-1), y
+	botX, botY := x, clamp(y-1, 0, RES-1)
+	rightX, rightY := clamp(x+1, 0, RES-1), y
 	g.board[x][y] = 1
 	g.board[topX][topY] = 1
 	g.board[leftX][leftY] = 1
@@ -136,7 +140,7 @@ func update(screen *ebiten.Image) error {
 		return nil
 	}
 	screen.Fill(color.RGBA{0, 0, 0, 0xff})
-	background, _ := ebiten.NewImage(480, 480, ebiten.FilterDefault)
+	background, _ := ebiten.NewImage(RES, RES, ebiten.FilterDefault)
 	g = logic(g)
 	draw(g, background)
 	screen.DrawImage(background, &ebiten.DrawImageOptions{})
@@ -147,7 +151,7 @@ func update(screen *ebiten.Image) error {
 func main() {
 	g = emptyGeneration()
 	giveState(g)
-	if err := ebiten.Run(update, 480, 480, 2, "Conway's Game of Life"); err != nil {
+	if err := ebiten.Run(update, RES, RES, 2, "Conway's Game of Life"); err != nil {
 		log.Fatal(err)
 	}
 }
