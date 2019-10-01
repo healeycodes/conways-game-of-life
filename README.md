@@ -6,6 +6,14 @@ Built in an evening, while noodling around with [Ebiten](https://github.com/haji
 
 Hovering over a cell with the cursor flips that cell's state.
 
+### Install
+
+`go install`
+
+### Run
+
+`go run main.go`
+
 <br>
 
 <small>MIT.</small>
