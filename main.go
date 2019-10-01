@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image/color"
 	"log"
 	"math/rand"
@@ -11,7 +12,8 @@ import (
 )
 
 type Game struct {
-	board [][]int
+	generation int
+	board      [][]int
 }
 
 var (
@@ -24,7 +26,7 @@ func emptyGeneration() *Game {
 	for i := 0; i < 480; i++ {
 		board[i] = make([]int, 480)
 	}
-	return &Game{board: board}
+	return &Game{board: board, generation: 1}
 }
 
 // Given an empty board, give it a random state
@@ -43,6 +45,7 @@ func giveState(g *Game) {
 // It returns the next generation
 func logic(g *Game) *Game {
 	n := emptyGeneration() // Next generation
+	n.generation = g.generation + 1
 	for x := 0; x < 480; x++ {
 		for y := 0; y < 480; y++ {
 			neighbors := checkNeighbors(x, y, g)
@@ -110,10 +113,24 @@ func draw(g *Game, background *ebiten.Image) {
 	}
 }
 
+// Place live cells around a point
+func interaction(x int, y int, g *Game) *Game {
+	topX, topY := x, clamp(y+1, 0, 480-1)
+	leftX, leftY := clamp(x-1, 0, 480-1), y
+	botX, botY := x, clamp(y-1, 0, 480-1)
+	rightX, rightY := clamp(x+1, 0, 480-1), y
+	g.board[x][y] = 1
+	g.board[topX][topY] = 1
+	g.board[leftX][leftY] = 1
+	g.board[botX][botY] = 1
+	g.board[rightX][rightY] = 1
+	return g
+}
+
 func update(screen *ebiten.Image) error {
-	x, y := ebiten.CursorPosition()
-	if x > 0 && x < 480 && y > 0 && y < 480 {
-		g.board[x][y] = 1 - g.board[x][y]
+	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
+		x, y := ebiten.CursorPosition()
+		interaction(x, y, g)
 	}
 	if ebiten.IsDrawingSkipped() {
 		return nil
@@ -123,6 +140,7 @@ func update(screen *ebiten.Image) error {
 	g = logic(g)
 	draw(g, background)
 	screen.DrawImage(background, &ebiten.DrawImageOptions{})
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("Generation: %v", g.generation))
 	return nil
 }
 
@@ -132,4 +150,13 @@ func main() {
 	if err := ebiten.Run(update, 480, 480, 2, "Conway's Game of Life"); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func clamp(x int, min int, max int) int {
+	if x < min {
+		return min
+	} else if x > max {
+		return max
+	}
+	return x
 }
