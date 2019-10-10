@@ -4,7 +4,7 @@ Built in an evening, while noodling around with [Ebiten](https://github.com/haji
 
 ![Preview GIF](https://github.com/healeycodes/conways-game-of-life/raw/master/preview.gif)
 
-Hovering over a cell with the cursor flips that cell's state.
+Left click flips the state of nearby cells.
 
 ![Preview interaction GIF](https://github.com/healeycodes/conways-game-of-life/raw/master/preview-interaction.gif)
 
