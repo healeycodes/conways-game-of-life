@@ -9,6 +9,9 @@ require github.com/hajimehoshi/ebiten v1.12.12
 require (
 	dmitri.shuralyov.com/gpu/mtl v0.0.0-20221208032759-85de2813cf6b // indirect
 	github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802 // indirect
+	github.com/ebitengine/gomobile v0.0.0-20240911145611-4856209ac325 // indirect
+	github.com/ebitengine/hideconsole v1.0.0 // indirect
+	github.com/ebitengine/purego v0.8.0 // indirect
 	github.com/go-gl/glfw v0.0.0-20240506104042-037f3cc74f2a // indirect
 	github.com/go-gl/glfw/v3.3/glfw v0.0.0-20240506104042-037f3cc74f2a // indirect
 	github.com/gofrs/flock v0.8.0 // indirect
@@ -17,13 +20,14 @@ require (
 	github.com/gopherjs/gopherjs v0.0.0-20180825215210-0210a2f0f73c // indirect
 	github.com/gopherjs/gopherwasm v1.1.0 // indirect
 	github.com/hajimehoshi/bitmapfont v1.3.0 // indirect
+	github.com/hajimehoshi/ebiten/v2 v2.8.1 // indirect
 	github.com/hajimehoshi/file2byteslice v0.0.0-20200812174855-0e5e8a80490e // indirect
-	github.com/hajimehoshi/go-mp3 v0.3.1 // indirect
+	github.com/hajimehoshi/go-mp3 v0.3.4 // indirect
 	github.com/hajimehoshi/oto v0.6.8 // indirect
-	github.com/jakecoffman/cp v1.0.0 // indirect
+	github.com/jakecoffman/cp v1.2.1 // indirect
 	github.com/jezek/xgb v1.1.1 // indirect
-	github.com/jfreymuth/oggvorbis v1.0.1 // indirect
-	github.com/jfreymuth/vorbis v1.0.0 // indirect
+	github.com/jfreymuth/oggvorbis v1.0.5 // indirect
+	github.com/jfreymuth/vorbis v1.0.2 // indirect
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/kr/pty v1.1.1 // indirect
 	github.com/kr/text v0.1.0 // indirect

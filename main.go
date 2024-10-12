@@ -7,14 +7,15 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/hajimehoshi/ebiten"
-	"github.com/hajimehoshi/ebiten/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
 const (
 	RES       int = 20
 	CELL_SIZE int = 10 // Size of each cell in pixels
 )
+
 type Game struct {
 	generation  int
 	board       [][]int
@@ -23,11 +24,13 @@ type Game struct {
 }
 
 var (
-	g   *Game
 	rng *rand.Rand
 )
 
-// A board with empty state
+func init() {
+	rng = rand.New(rand.NewSource(time.Now().UnixNano()))
+}
+
 func emptyGeneration() *Game {
 	board := make([][]int, RES)
 	for i := 0; i < RES; i++ {
@@ -41,176 +44,127 @@ func emptyGeneration() *Game {
 	}
 }
 
-// Given an empty board, give it a random state
-
-func init() {
-	rng = rand.New(rand.NewSource(time.Now().UnixNano()))
-}
-
 func giveState(g *Game) {
 	for x := 0; x < RES; x++ {
 		for y := 0; y < RES; y++ {
-			if rng.Intn(15) == 1 { // You can adjust this probability as needed
+			if rng.Intn(15) == 1 {
 				g.board[x][y] = 1
 			}
 		}
 	}
 }
 
-// Apply the rules to a game's generation
-// It returns the next generation
-func logic(g *Game) *Game {
-	n := emptyGeneration() // Next generation
-	n.generation = g.generation + 1
-	for x := 0; x < RES; x++ {
-		for y := 0; y < RES; y++ {
-			neighbors := checkNeighbors(x, y, g)
-			live := g.board[x][y] == 1
-
-			// Any live cell with fewer than two live neighbors dies, as if by underpopulation.
-			if live && neighbors < 2 {
-				n.board[x][y] = 0
-			}
-
-			// Any live cell with two or three live neighbors lives on to the next generation.
-			if live && (neighbors == 2 || neighbors == 3) {
-				n.board[x][y] = 1
-			}
-
-			// Any live cell with more than three live neighbors dies, as if by overpopulation.
-			if live && neighbors > 3 {
-				n.board[x][y] = 0
-			}
-
-			// Any dead cell with exactly three live neighbors becomes a live cell, as if by reproduction.
-			if !live && neighbors == 3 {
-				n.board[x][y] = 1
-			}
-		}
-	}
-	return n
-}
-
-// Given a position and a game
-// Get the number of live neighbors at that position
-func checkNeighbors(x int, y int, g *Game) int {
-	neighbors := 0
-
-	if y+1 < RES && g.board[x][y+1] == 1 { // top
-		neighbors += 1
-	}
-	if y+1 < RES && x+1 < RES && g.board[x+1][y+1] == 1 { // top right
-		neighbors += 1
-	}
-	if x+1 < RES && g.board[x+1][y] == 1 { // right
-		neighbors += 1
-	}
-	if x+1 < RES && y-1 >= 0 && g.board[x+1][y-1] == 1 { // bottom right
-		neighbors += 1
-	}
-	if y-1 >= 0 && g.board[x][y-1] == 1 { // bottom
-		neighbors += 1
-	}
-	if x-1 >= 0 && y-1 >= 0 && g.board[x-1][y-1] == 1 { // bottom left
-		neighbors += 1
-	}
-	if x-1 >= 0 && g.board[x-1][y] == 1 { // left
-		neighbors += 1
-	}
-	if x-1 >= 0 && y+1 < RES && g.board[x-1][y+1] == 1 { // top left
-		neighbors += 1
-	}
-
-	return neighbors
-}
-
-// Draw the game onto a black background
-func draw(g *Game, screen *ebiten.Image) {
-	screen.Fill(color.RGBA{0x00, 0x00, 0x00, 0xff})
-	for x := 0; x < RES; x++ {
-		for y := 0; y < RES; y++ {
-			if g.board[x][y] == 1 {
-				// Draw filled squares using DrawRect
-				ebitenutil.DrawRect(screen, float64(x*CELL_SIZE), float64(y*CELL_SIZE), float64(CELL_SIZE), float64(CELL_SIZE), color.White)
-			}
-			// Draw grid lines for better visibility:
-			if x < RES-1 {
-				for i := 0; i < CELL_SIZE; i++ {
-					screen.Set(int((x+1)*CELL_SIZE)+i, y*CELL_SIZE, color.RGBA{255, 255, 255, 255})
-				}
-			}
-			if y < RES-1 {
-				for i := 0; i < CELL_SIZE; i++ {
-					screen.Set(x*CELL_SIZE+i, int((y+1)*CELL_SIZE), color.RGBA{255, 255, 255, 255})
-				}
-			}
-		}
-	}
-}
-
-// Place live cells around a point
-func interaction(x int, y int, g *Game) *Game {
-	x = clamp(x/CELL_SIZE, 0, RES-1)
-	y = clamp(y/CELL_SIZE, 0, RES-1)
-
-	topX, topY := x, clamp(y+1, 0, RES-1)
-	leftX, leftY := clamp(x-1, 0, RES-1), y
-	botX, botY := x, clamp(y-1, 0, RES-1)
-	rightX, rightY := clamp(x+1, 0, RES-1), y
-
-	g.board[x][y] = 1
-	g.board[topX][topY] = 1
-	g.board[leftX][leftY] = 1
-	g.board[botX][botY] = 1
-	g.board[rightX][rightY] = 1
-
-	return g
-}
-
-func update(screen *ebiten.Image) error {
+func (g *Game) Update() error {
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		x, y := ebiten.CursorPosition()
 		interaction(x, y, g)
 	}
 
+	if ebiten.IsKeyPressed(ebiten.KeyUp) {
+		g.updateDelay = max(g.updateDelay-50*time.Millisecond, 50*time.Millisecond)
+	}
+	if ebiten.IsKeyPressed(ebiten.KeyDown) {
+		g.updateDelay = min(g.updateDelay+50*time.Millisecond, 2*time.Second)
+	}
+
 	if time.Since(g.lastUpdate) >= g.updateDelay {
-		g = logic(g)
+		g.board = logic(g.board)
+		g.generation++
 		g.lastUpdate = time.Now()
 	}
 
-	if ebiten.IsDrawingSkipped() {
-		return nil
-	}
-
-	draw(g, screen)
-
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("Generation:%v", g.generation))
-
-	return nil
-}
-
-func (g *Game) Update() error {
-	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
-			x, y := ebiten.CursorPosition()
-			interaction(x, y, g)
-	}
 	return nil
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
 	draw(g, screen)
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("Generation:%v", g.generation))
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("Generation:%v\nUpdate Delay: %v", g.generation, g.updateDelay))
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
 	return RES * CELL_SIZE, RES * CELL_SIZE
 }
 
+func logic(board [][]int) [][]int {
+	newBoard := make([][]int, RES)
+	for i := 0; i < RES; i++ {
+		newBoard[i] = make([]int, RES)
+	}
+
+	for x := 0; x < RES; x++ {
+		for y := 0; y < RES; y++ {
+			neighbors := checkNeighbors(x, y, board)
+			live := board[x][y] == 1
+
+			if live && neighbors < 2 {
+				newBoard[x][y] = 0
+			} else if live && (neighbors == 2 || neighbors == 3) {
+				newBoard[x][y] = 1
+			} else if live && neighbors > 3 {
+				newBoard[x][y] = 0
+			} else if !live && neighbors == 3 {
+				newBoard[x][y] = 1
+			} else {
+				newBoard[x][y] = board[x][y]
+			}
+		}
+	}
+	return newBoard
+}
+
+func checkNeighbors(x int, y int, board [][]int) int {
+	neighbors := 0
+	for dx := -1; dx <= 1; dx++ {
+		for dy := -1; dy <= 1; dy++ {
+			if dx == 0 && dy == 0 {
+				continue
+			}
+			nx, ny := x+dx, y+dy
+			if nx >= 0 && nx < RES && ny >= 0 && ny < RES && board[nx][ny] == 1 {
+				neighbors++
+			}
+		}
+	}
+	return neighbors
+}
+
+func draw(g *Game, screen *ebiten.Image) {
+	screen.Fill(color.RGBA{0x00, 0x00, 0x00, 0xff})
+	for x := 0; x < RES; x++ {
+		for y := 0; y < RES; y++ {
+			if g.board[x][y] == 1 {
+				ebitenutil.DrawRect(screen, float64(x*CELL_SIZE), float64(y*CELL_SIZE), float64(CELL_SIZE), float64(CELL_SIZE), color.White)
+			}
+			if x < RES-1 {
+				ebitenutil.DrawLine(screen, float64((x+1)*CELL_SIZE), float64(y*CELL_SIZE), float64((x+1)*CELL_SIZE), float64((y+1)*CELL_SIZE), color.RGBA{0x33, 0x33, 0x33, 0xff})
+			}
+			if y < RES-1 {
+				ebitenutil.DrawLine(screen, float64(x*CELL_SIZE), float64((y+1)*CELL_SIZE), float64((x+1)*CELL_SIZE), float64((y+1)*CELL_SIZE), color.RGBA{0x33, 0x33, 0x33, 0xff})
+			}
+		}
+	}
+}
+
+func interaction(x int, y int, g *Game) {
+	x = clamp(x/CELL_SIZE, 0, RES-1)
+	y = clamp(y/CELL_SIZE, 0, RES-1)
+
+	for dx := -1; dx <= 1; dx++ {
+		for dy := -1; dy <= 1; dy++ {
+			nx, ny := clamp(x+dx, 0, RES-1), clamp(y+dy, 0, RES-1)
+			g.board[nx][ny] = 1
+		}
+	}
+}
+
 func main() {
-	g = emptyGeneration()
+	g := emptyGeneration()
 	giveState(g)
 
-	if err := ebiten.Run(update, RES*CELL_SIZE, RES*CELL_SIZE, 2, "Conway's Game of Life"); err != nil {
+	ebiten.SetWindowSize(RES*CELL_SIZE*2, RES*CELL_SIZE*2)
+	ebiten.SetWindowTitle("Conway's Game of Life")
+
+	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -222,4 +176,18 @@ func clamp(x int, min int, max int) int {
 		return max
 	}
 	return x
+}
+
+func max(a, b time.Duration) time.Duration {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func min(a, b time.Duration) time.Duration {
+	if a < b {
+		return a
+	}
+	return b
 }
