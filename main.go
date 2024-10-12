@@ -35,17 +35,21 @@ func emptyGeneration() *Game {
 }
 
 // Given an empty board, give it a random state
+var rng *rand.Rand // Global random number generator
+
+func init() {
+	rng = rand.New(rand.NewSource(time.Now().UnixNano()))
+}
+
 func giveState(g *Game) {
-	rand.Seed(time.Now().UnixNano())
 	for x := 0; x < RES; x++ {
 		for y := 0; y < RES; y++ {
-			if rand.Intn(15) == 1 { // You can adjust this probability as needed
+			if rng.Intn(15) == 1 { // You can adjust this probability as needed
 				g.board[x][y] = 1
 			}
 		}
 	}
 }
-
 // Apply the rules to a game's generation
 // It returns the next generation
 func logic(g *Game) *Game {
