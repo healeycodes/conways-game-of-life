@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	RES     int = 20
+	RES       int = 20
 	CELL_SIZE int = 10 // Size of each cell in pixels
 )
 
@@ -22,7 +22,8 @@ type Game struct {
 }
 
 var (
-	g *Game
+	g   *Game
+	rng *rand.Rand
 )
 
 // A board with empty state
@@ -35,7 +36,6 @@ func emptyGeneration() *Game {
 }
 
 // Given an empty board, give it a random state
-var rng *rand.Rand // Global random number generator
 
 func init() {
 	rng = rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -50,6 +50,7 @@ func giveState(g *Game) {
 		}
 	}
 }
+
 // Apply the rules to a game's generation
 // It returns the next generation
 func logic(g *Game) *Game {
@@ -89,29 +90,29 @@ func logic(g *Game) *Game {
 func checkNeighbors(x int, y int, g *Game) int {
 	neighbors := 0
 
-	if y+1 < RES && g.board[x][y+1] == 1 { // top 
-		neighbors += 1 
+	if y+1 < RES && g.board[x][y+1] == 1 { // top
+		neighbors += 1
 	}
-	if y+1 < RES && x+1 < RES && g.board[x+1][y+1] == 1 { // top right 
-		neighbors += 1 
+	if y+1 < RES && x+1 < RES && g.board[x+1][y+1] == 1 { // top right
+		neighbors += 1
 	}
-	if x+1 < RES && g.board[x+1][y] == 1 { // right 
-		neighbors += 1 
+	if x+1 < RES && g.board[x+1][y] == 1 { // right
+		neighbors += 1
 	}
-	if x+1 < RES && y-1 >=0 && g.board[x+1][y-1] == 1 { // bottom right 
-		neighbors += 1 
+	if x+1 < RES && y-1 >= 0 && g.board[x+1][y-1] == 1 { // bottom right
+		neighbors += 1
 	}
-	if y-1 >=0 && g.board[x][y-1] == 1 { // bottom 
-		neighbors += 1 
+	if y-1 >= 0 && g.board[x][y-1] == 1 { // bottom
+		neighbors += 1
 	}
-	if x-1 >=0 && y-1 >=0 && g.board[x-1][y-1] == 1 { // bottom left 
-		neighbors += 1 
+	if x-1 >= 0 && y-1 >= 0 && g.board[x-1][y-1] == 1 { // bottom left
+		neighbors += 1
 	}
-	if x-1 >=0 && g.board[x-1][y] == 1 { // left 
-		neighbors += 1 
+	if x-1 >= 0 && g.board[x-1][y] == 1 { // left
+		neighbors += 1
 	}
-	if x-1 >=0 && y+1 < RES && g.board[x-1][y+1] == 1 { // top left 
-		neighbors += 1 
+	if x-1 >= 0 && y+1 < RES && g.board[x-1][y+1] == 1 { // top left
+		neighbors += 1
 	}
 
 	return neighbors
@@ -119,7 +120,7 @@ func checkNeighbors(x int, y int, g *Game) int {
 
 // Draw the game onto a black background
 func draw(g *Game, screen *ebiten.Image) {
-	screen.Fill(color.RGBA{0x00 ,0x00 ,0x00 ,0xff})
+	screen.Fill(color.RGBA{0x00, 0x00, 0x00, 0xff})
 	for x := 0; x < RES; x++ {
 		for y := 0; y < RES; y++ {
 			if g.board[x][y] == 1 {
@@ -127,12 +128,12 @@ func draw(g *Game, screen *ebiten.Image) {
 				ebitenutil.DrawRect(screen, float64(x*CELL_SIZE), float64(y*CELL_SIZE), float64(CELL_SIZE), float64(CELL_SIZE), color.White)
 			}
 			// Draw grid lines for better visibility:
-			if x < RES - 1 {
+			if x < RES-1 {
 				for i := 0; i < CELL_SIZE; i++ {
 					screen.Set(int((x+1)*CELL_SIZE)+i, y*CELL_SIZE, color.RGBA{255, 255, 255, 255})
 				}
 			}
-			if y < RES - 1 {
+			if y < RES-1 {
 				for i := 0; i < CELL_SIZE; i++ {
 					screen.Set(x*CELL_SIZE+i, int((y+1)*CELL_SIZE), color.RGBA{255, 255, 255, 255})
 				}
@@ -143,8 +144,8 @@ func draw(g *Game, screen *ebiten.Image) {
 
 // Place live cells around a point
 func interaction(x int, y int, g *Game) *Game {
-	x = clamp(x / CELL_SIZE, 0, RES-1)
-	y = clamp(y / CELL_SIZE, 0, RES-1)
+	x = clamp(x/CELL_SIZE, 0, RES-1)
+	y = clamp(y/CELL_SIZE, 0, RES-1)
 
 	topX, topY := x, clamp(y+1, 0, RES-1)
 	leftX, leftY := clamp(x-1, 0, RES-1), y
@@ -162,36 +163,36 @@ func interaction(x int, y int, g *Game) *Game {
 
 func update(screen *ebiten.Image) error {
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
-		x,y:=ebiten.CursorPosition()
-		interaction(x,y,g)
+		x, y := ebiten.CursorPosition()
+		interaction(x, y, g)
 	}
 
-	if ebiten.IsDrawingSkipped(){
+	if ebiten.IsDrawingSkipped() {
 		return nil
 	}
 
-	g=logic(g)
+	g = logic(g)
 
-	draw(g ,screen)
+	draw(g, screen)
 
-	ebitenutil.DebugPrint(screen ,fmt.Sprintf("Generation:%v",g.generation))
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("Generation:%v", g.generation))
 
 	return nil
 }
 
-func main(){
-	g=emptyGeneration()
+func main() {
+	g = emptyGeneration()
 	giveState(g)
 
-	if err:=ebiten.Run(update ,RES*CELL_SIZE ,RES*CELL_SIZE ,2 ,"Conway's Game of Life");err!=nil{
+	if err := ebiten.Run(update, RES*CELL_SIZE, RES*CELL_SIZE, 2, "Conway's Game of Life"); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func clamp(x int,min int,max int)int{
-	if x<min{
+func clamp(x int, min int, max int) int {
+	if x < min {
 		return min
-	}else if x>max{
+	} else if x > max {
 		return max
 	}
 	return x
