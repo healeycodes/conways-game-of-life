@@ -189,6 +189,23 @@ func update(screen *ebiten.Image) error {
 	return nil
 }
 
+func (g *Game) Update() error {
+	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
+			x, y := ebiten.CursorPosition()
+			interaction(x, y, g)
+	}
+	return nil
+}
+
+func (g *Game) Draw(screen *ebiten.Image) {
+	draw(g, screen)
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("Generation:%v", g.generation))
+}
+
+func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
+	return RES * CELL_SIZE, RES * CELL_SIZE
+}
+
 func main() {
 	g = emptyGeneration()
 	giveState(g)
