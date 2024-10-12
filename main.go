@@ -148,13 +148,14 @@ func draw(g *Game, screen *ebiten.Image) {
 func interaction(x int, y int, g *Game) {
 	x = clamp(x/CELL_SIZE, 0, RES-1)
 	y = clamp(y/CELL_SIZE, 0, RES-1)
+	g.board[x][y] = 1	
 
-	for dx := -1; dx <= 1; dx++ {
-		for dy := -1; dy <= 1; dy++ {
-			nx, ny := clamp(x+dx, 0, RES-1), clamp(y+dy, 0, RES-1)
-			g.board[nx][ny] = 1
-		}
-	}
+	// for dx := -1; dx <= 1; dx++ {
+	// 	for dy := -1; dy <= 1; dy++ {
+	// 		nx, ny := clamp(x+dx, 0, RES-1), clamp(y+dy, 0, RES-1)
+	// 		g.board[nx][ny] = 1
+	// 	}
+	// }
 }
 
 func main() {
