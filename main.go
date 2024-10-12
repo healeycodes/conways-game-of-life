@@ -15,10 +15,11 @@ const (
 	RES       int = 20
 	CELL_SIZE int = 10 // Size of each cell in pixels
 )
-
 type Game struct {
-	generation int
-	board      [][]int
+	generation  int
+	board       [][]int
+	lastUpdate  time.Time
+	updateDelay time.Duration
 }
 
 var (
@@ -32,7 +33,12 @@ func emptyGeneration() *Game {
 	for i := 0; i < RES; i++ {
 		board[i] = make([]int, RES)
 	}
-	return &Game{board: board, generation: 1}
+	return &Game{
+		board:       board,
+		generation:  1,
+		lastUpdate:  time.Now(),
+		updateDelay: 500 * time.Millisecond, // Update every 500ms
+	}
 }
 
 // Given an empty board, give it a random state
@@ -167,11 +173,14 @@ func update(screen *ebiten.Image) error {
 		interaction(x, y, g)
 	}
 
+	if time.Since(g.lastUpdate) >= g.updateDelay {
+		g = logic(g)
+		g.lastUpdate = time.Now()
+	}
+
 	if ebiten.IsDrawingSkipped() {
 		return nil
 	}
-
-	g = logic(g)
 
 	draw(g, screen)
 
